@@ -57,7 +57,7 @@ h2,h3,p,dl,dd,ul,ol{margin:0;padding:0}
 /* ───── Gerüst ───── */
 .app{
   height:100%;max-width:1180px;margin:0 auto;padding:8px;
-  display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--gap);
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:var(--gap);
 }
 .frame{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:0}
 .frame-top{grid-template-rows:auto var(--bar)}
@@ -262,6 +262,37 @@ h1{
 .seg2 button:last-child{border-radius:0 999px 999px 0}
 .seg2 button[aria-pressed="true"]{background:var(--hot);color:var(--ink)}
 
+/* ───── Fußzeile ───── */
+.foot{
+  display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0 20px;padding:0 4px;
+  font-size:13px;line-height:1.2;text-transform:uppercase;letter-spacing:.09em;
+}
+.foot a{display:inline-flex;align-items:center;min-height:30px;color:var(--lilac);text-decoration:none}
+.foot a:hover{color:var(--peach);text-decoration:underline;text-underline-offset:3px}
+.foot a[aria-current="page"]{color:var(--peach)}
+
+/* ───── Impressum, Datenschutz ─────
+   Gleiches Gerüst wie die Brücke, aber die Seite wächst mit dem Text und scrollt als Ganzes. */
+.app.page{height:auto;min-height:100%}
+a.nb{text-decoration:none}
+.nb.fit{font-size:12px}
+.filler.last{border-radius:0 0 0 calc(var(--R) / 2)}
+h1 a{color:inherit;text-decoration:none}
+.ptitle{font-size:clamp(34px,10vw,72px);font-weight:600;line-height:.95;color:var(--peach);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+.legal{display:grid;grid-template-columns:minmax(0,1fr);gap:26px;max-width:720px;padding:0 6px 28px 0}
+.legal section{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding-left:14px;border-left:6px solid var(--lilac);min-width:0}
+.legal h2{font-size:22px;font-weight:600;line-height:1.15;text-transform:uppercase;letter-spacing:.07em;color:var(--peach);text-wrap:balance;overflow-wrap:break-word}
+.legal h3{font-size:15px;font-weight:600;line-height:1.2;text-transform:uppercase;letter-spacing:.09em;color:var(--lilac);margin-top:8px}
+.legal p,.legal li,.legal address{color:var(--ice);font-size:18px;line-height:1.45;font-style:normal;overflow-wrap:anywhere}
+.legal ul{list-style:none;display:grid;gap:4px}
+.legal li{padding-left:16px;position:relative}
+.legal li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:50%;background:var(--peri)}
+.legal a{color:var(--peach);text-decoration:underline;text-underline-offset:3px}
+.legal a:hover{color:var(--hot)}
+.legal .lead{color:var(--text);font-size:19px}
+.legal .caps{font-size:16px;letter-spacing:.04em}
+.legal .back{padding-left:20px;border-left:0}
+
 /* Bewegung: ein Startmoment, sonst nur Antworten auf Eingaben */
 @keyframes rise{from{opacity:.2}to{opacity:1}}
 @keyframes sweep{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -282,6 +313,7 @@ h1{
   .elbow{height:80px}
   .nb{flex-basis:64px;font-size:19px;padding:8px 14px}
   .nb .info{font-size:14px}
+  .nb.fit{font-size:19px}
   .meta dt{font-size:13px}.meta dd{font-size:22px}
   .top-main{padding:0 4px 14px 26px}
   .content{padding:22px 4px 0 26px}
@@ -292,6 +324,9 @@ h1{
   .ord .ok{display:block}
   .g .gv{font-size:26px}
   .g dt,.g .gs{font-size:12px}
+  .foot{font-size:14px;gap:0 28px}
+  .legal{padding-right:24px}
+  .legal h2{font-size:26px}
 }
 /* Sehr flache Fenster: Seite darf scrollen statt alles zu quetschen */
 @media (max-height:520px){

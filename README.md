@@ -53,6 +53,8 @@ Per Kommandozeile geht es auch: `npx vercel` für eine Vorschau, `npx vercel --p
 ```
 public/
   index.html        Seitengerüst
+  impressum.html    Impressum (im Footer verlinkt)
+  datenschutz.html  Datenschutzerklärung (im Footer verlinkt)
   css/style.css     Gestaltung, Schrift-Einbindung
   js/engine.js      Spiellogik: Szenario, Befehle, Gegner, Bewertung (ohne Browser lauffähig)
   js/music.js       Musik-Engine: Stimmungen, Akkordfolgen, Instrumente
@@ -67,6 +69,8 @@ vercel.json         Ausgabeordner und Sicherheits-Header für Vercel
 ## Datenschutz
 
 Die Seite lädt nichts von fremden Servern, auch die Schrift wird selbst ausgeliefert. Es gibt keine Cookies und kein Tracking. Akte und Einstellungen liegen nur im `localStorage` des jeweiligen Browsers.
+
+Impressum und Datenschutzerklärung stehen in `public/impressum.html` und `public/datenschutz.html`. Wer Hosting, Speicherung im Browser oder eingebundene Dienste ändert, muss die Datenschutzerklärung mit anpassen.
 
 ## Hinweis
 
