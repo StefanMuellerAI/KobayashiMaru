@@ -13,6 +13,23 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
   };
 
+  /* ── Sprache: eigene Wahl, sonst die Browser-Einstellung. Gespeichert wird nur eine eigene Wahl. ── */
+  const I = KMI18N;
+  const chosen = local.get('km.lang', null);
+  let lang = I.LANGS.includes(chosen) ? chosen : I.detect(navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]);
+  const T = (k, p) => I.t(lang, k, p);
+  /* Feste Texte im HTML: data-i18n setzt den Text, data-i18n-attr Attribute ("attr:schlüssel;attr:schlüssel") */
+  function applyStatic() {
+    document.documentElement.lang = lang;
+    for (const e of $$('[data-i18n]')) setText(e, T(e.dataset.i18n));
+    for (const e of $$('[data-i18n-attr]')) {
+      for (const pair of e.dataset.i18nAttr.split(';')) { const [a, k] = pair.split(':'); e.setAttribute(a, T(k)); }
+    }
+    const md = $('meta[name="description"]'); if (md) md.setAttribute('content', T('u.descr'));
+    const ll = $('#langLbl'); ll.lang = T('u.langOtherCode');
+  }
+  applyStatic();
+
   /* ── Ton ── */
   let soundOn = local.get('km.ton', true) !== false;
   let actx = null, noiseBuf = null;
@@ -75,12 +92,11 @@
     win() { tone(523, 0, .14); tone(659, .14, .14); tone(784, .28, .14); tone(1047, .42, .4); },
   };
   const soundBtn = $('#soundBtn');
-  function renderSound() { $('#soundLbl').textContent = soundOn ? 'Effekte an' : 'Effekte aus'; soundBtn.setAttribute('aria-pressed', String(soundOn)); }
+  function renderSound() { $('#soundLbl').textContent = T(soundOn ? 'u.sfxOn' : 'u.sfxOff'); soundBtn.setAttribute('aria-pressed', String(soundOn)); }
   soundBtn.addEventListener('click', () => { soundOn = !soundOn; local.set('km.ton', soundOn); renderSound(); if (soundOn) sfx.ok(); });
   renderSound();
 
   /* ── Musik: Stimmung folgt der Lage, Start erst nach dem ersten Tippen ── */
-  const MOODNAME = { notruf: 'Notruf', spannung: 'Anflug', drohung: 'Drohung', gefecht: 'Gefecht', kritisch: 'Kritisch', trauer: 'Trauer', verlust: 'Verlust', erleichterung: 'Erleichtert', triumph: 'Triumph' };
   const music = {
     on: local.get('km.musik', true) !== false, eng: null, timer: 0, mood: 'notruf', failed: false,
     start() {
@@ -109,9 +125,9 @@
       this.render();
     },
     render() {
-      $('#musicLbl').textContent = this.on ? 'Musik an' : 'Musik aus';
+      $('#musicLbl').textContent = T(this.on ? 'u.musicOn' : 'u.musicOff');
       $('#musicBtn').setAttribute('aria-pressed', String(this.on));
-      setText($('#musicInfo'), this.on && this.timer ? MOODNAME[this.mood] || '' : '');
+      setText($('#musicInfo'), this.on && this.timer ? T('mood.' + this.mood) : '');
     },
   };
   $('#musicBtn').addEventListener('click', () => {
@@ -119,6 +135,7 @@
     if (music.on) music.start(); else music.stop();
     music.render();
   });
+  music.render();
   /* Browser erlauben Ton erst nach einer Berührung: Musik startet beim ersten Tippen */
   const wake = () => { if (!music.on) return; if (!music.timer) music.start(); else ctxGet(); };
   for (const ev of ['pointerup', 'click', 'keydown']) document.addEventListener(ev, wake, true);
@@ -158,11 +175,11 @@
   const newSeed = () => 1 + Math.floor(Math.random() * 65535);
   const scCode = (seed) => 'KM-' + seed.toString(16).toUpperCase().padStart(4, '0');
 
-  let S = null, stage = 'brief', view = 'bruecke', ev = null, recorded = false;
+  let S = null, stage = 'brief', view = 'bruecke', recorded = false;
 
   function begin(seed, live) {
     S = KM.newGame(seed, cheats, code);
-    ev = null; recorded = false;
+    recorded = false;
     stage = live ? 'sim' : 'brief';
     if (live) { attempt++; local.set('km.n', attempt); }
     shown = 0; fx.length = 0; anim.pos = 0;
@@ -177,7 +194,6 @@
     elm.dataset.v = str; elm.textContent = '';
     for (const ch of str) elm.append(el('span', /\d/.test(ch) ? 'd' : 's', ch));
   }
-  const PHASE = { grenze: 'An der Grenze', anflug: 'Anflug', frachter: 'Am Frachter', rueckzug: 'Rückzug' };
   function gauge(id, v, s, pct, crit) {
     const g = $('#' + id);
     setText($('.gv', g), v); setText($('.gs', g), s || '');
@@ -187,7 +203,7 @@
   function renderHead() {
     setDigits($('#clock'), 'T+' + p2(S.turn) + ':00');
     setText($('#scCode'), scCode(S.seed));
-    setText($('#mPhase'), stage === 'brief' ? 'Bereit' : S.over ? 'Beendet' : PHASE[S.phase]);
+    setText($('#mPhase'), stage === 'brief' ? T('u.sReady') : S.over ? T('u.sEnded') : T('phase.' + S.phase));
     setText($('#mTry'), String(stage === 'brief' ? attempt + 1 : attempt));
     const alert = stage === 'brief' || S.over ? 'normal' : S.red ? 'rot' : S.f.entered ? 'gelb' : 'normal';
     if (app.dataset.alert !== alert) {
@@ -195,36 +211,36 @@
       if (alert === 'rot') { app.classList.remove('flash'); void app.offsetWidth; app.classList.add('flash'); sfx.alarm(); }
       else if (alert === 'gelb') sfx.caution();
     }
-    setText($('#navBr'), stage === 'debrief' ? 'Auswertung' : stage === 'brief' ? 'Bereit' : S.over ? 'Ende' : S.red ? 'Alarm' : 'Läuft');
-    setText($('#navLog'), stage === 'brief' ? '' : S.turn + ' Min');
+    setText($('#navBr'), T(stage === 'debrief' ? 'u.sDebrief' : stage === 'brief' ? 'u.sReady' : S.over ? 'u.sOver' : S.red ? 'u.sAlert' : 'u.sRunning'));
+    setText($('#navLog'), stage === 'brief' ? '' : T('u.min', { n: S.turn }));
     setText($('#navAkte'), akte.length ? String(akte.length) : '');
-    setText($('#navKern'), kernOpen ? (KM.isCheated(cheats) ? 'Verändert' : 'Offen') : 'Gesperrt');
+    setText($('#navKern'), T(kernOpen ? (KM.isCheated(cheats) ? 'u.modified' : 'u.open') : 'u.locked'));
     const running = stage === 'sim' && !S.over;
-    setText($('#resetInfo'), running ? 'Abbruch' : 'Versuch');
-    if (!armed) setText($('#resetLbl'), 'Neu');
+    setText($('#resetInfo'), T(running ? 'u.abort' : 'u.attempt'));
+    setText($('#resetLbl'), T(armed ? 'u.sure' : 'u.navNew'));
   }
   function renderGauges() {
     const sh = S.ship, fr = S.fr, k = S.know;
-    gauge('gSh', sh.shields + ' %', S.red ? 'oben' : 'unten', sh.shields, S.red && sh.shields < 30);
-    gauge('gHu', sh.hull + ' %', !sh.warp ? 'kein Warp' : sh.trans < 1 ? 'Transporter ½' : !sh.sensors ? 'Sensoren aus' : 'intakt', sh.hull, sh.hull < 40);
-    gauge('gTo', String(sh.torp), sh.shut + (sh.shut === 1 ? ' Shuttle' : ' Shuttles'));
+    gauge('gSh', T('u.pct', { n: sh.shields }), T(S.red ? 'u.up' : 'u.down'), sh.shields, S.red && sh.shields < 30);
+    gauge('gHu', T('u.pct', { n: sh.hull }), T(!sh.warp ? 'u.noWarp' : sh.trans < 1 ? 'u.transHalf' : !sh.sensors ? 'u.sensorsOff' : 'u.intact'), sh.hull, sh.hull < 40);
+    gauge('gTo', String(sh.torp), T('u.shuttles', { n: sh.shut }));
     const n = S.en.length;
-    gauge('gEn', n ? String(n) : (k.echo && S.hidden > 0 ? '?' : '0'), n ? (S.hostile ? 'feuern' : S.grace > 0 ? 'Frist ' + S.grace + ' Min' : S.ult > 0 ? 'Ultimatum' : 'halten Feuer') : (k.echo && S.hidden > 0 ? 'Echos' : 'keine Ortung'), 0, S.hostile && n > 0);
+    gauge('gEn', n ? String(n) : (k.echo && S.hidden > 0 ? '?' : '0'), n ? (S.hostile ? T('u.firing') : S.grace > 0 ? T('u.graceMin', { n: S.grace }) : S.ult > 0 ? T('u.ultimatum') : T('u.holdingFire')) : T(k.echo && S.hidden > 0 ? 'u.echoes' : 'u.noContact'), 0, S.hostile && n > 0);
     const ca = k.people === 'ca';
-    gauge('gFr', !fr.alive ? '0' : k.people ? (ca ? '≈ ' : '') + Math.max(0, fr.aboard + (ca ? k.peopleOff : 0)) : '?', !fr.alive ? 'verloren' : fr.pods ? fr.pods + ' in Kapseln' : k.hull ? 'Hülle ' + fr.hull + ' %' : 'an Bord', 0, !fr.alive);
-    gauge('gRe', String(S.rescued), S.tow ? 'im Schlepp' : 'an Bord');
+    gauge('gFr', !fr.alive ? '0' : k.people ? (ca ? '≈ ' : '') + Math.max(0, fr.aboard + (ca ? k.peopleOff : 0)) : '?', !fr.alive ? T('u.lost') : fr.pods ? T('u.inPods', { n: fr.pods }) : k.hull ? T('u.hullPct', { n: fr.hull }) : T('u.aboard'), 0, !fr.alive);
+    gauge('gRe', String(S.rescued), T(S.tow ? 'u.inTow' : 'u.aboard'));
     const life = fr.life + (k.life === 'ca' ? k.lifeOff : 0);
-    gauge('gLi', !fr.alive ? '–' : k.life ? (k.life === 'ca' ? '≈ ' : '') + Math.max(1, life) + ' Min' : '?', S.storm > 0 ? 'Ionensturm' : 'bis Ausfall', 0, fr.alive && k.life && life <= 3);
-    gauge('gCr', String(sh.dead), 'von ' + sh.crew, 0, sh.dead > 0);
+    gauge('gLi', !fr.alive ? '–' : k.life ? (k.life === 'ca' ? '≈ ' : '') + T('u.min', { n: Math.max(1, life) }) : '?', T(S.storm > 0 ? 'u.ionStorm' : 'u.untilFail'), 0, fr.alive && k.life && life <= 3);
+    gauge('gCr', String(sh.dead), T('u.ofN', { n: sh.crew }), 0, sh.dead > 0);
   }
 
   /* ── Meldungen und Befehle ── */
   let shown = 0;
   function reportNode(l, fresh) {
     const p = el('p', 'rp' + (l.tone ? ' ' + l.tone : '') + (fresh && !reduced ? ' new' : ''));
-    const who = el('span', 'who', KM.ROLE[l.who]);
-    if (S.off[l.who]) { who.append(' '); who.append(el('i', '', S.off[l.who])); }
-    p.append(who, el('span', 'tx', l.text));
+    const who = el('span', 'who', T('role.' + l.who));
+    if (S.off[l.who]) { who.append(' '); who.append(el('i', '', T('rank.' + l.who) + ' ' + S.off[l.who])); }
+    p.append(who, el('span', 'tx', KM.line(l, lang)));
     return p;
   }
   const CAT = ['resc', 'nav', 'tac', 'sens', 'comm', 'ship'];
@@ -242,8 +258,8 @@
     lines.forEach((l, i) => box.append(reportNode(l, fresh && i >= keep)));
     shown = S.log.length;
     const head = $('#turnhead'); head.textContent = '';
-    head.append(el('b', '', S.log[from].order ? 'Minute ' + S.log[from].t : 'Lage zu Beginn'));
-    if (S.log[from].order) head.append(el('span', '', 'Ihr Befehl: ' + S.log[from].order));
+    head.append(el('b', '', S.log[from].order ? T('u.minuteN', { n: S.log[from].t }) : T('u.initial')));
+    if (S.log[from].order) head.append(el('span', '', T('u.yourOrder', { o: KM.text(S.log[from].order, lang) })));
 
     const os = KM.orders(S);
     const main = os.filter((o) => !o.instant).sort((a, b) => CAT.indexOf(a.cat) - CAT.indexOf(b.cat));
@@ -253,15 +269,15 @@
     main.forEach((o, i) => {
       const b = el('button', 'ord c-' + o.cat); b.type = 'button'; b.dataset.id = o.id;
       const txt = el('span');
-      txt.append(el('span', 'ol', o.label));
-      if (o.hint) txt.append(el('span', 'oh', o.hint));
+      txt.append(el('span', 'ol', KM.text(o.label, lang)));
+      if (o.hint) txt.append(el('span', 'oh', KM.text(o.hint, lang)));
       b.append(txt);
       if (i < 10) { const key = String((i + 1) % 10); keyMap.push([key, o.id]); const kk = el('span', 'ok', key); kk.setAttribute('aria-hidden', 'true'); b.append(kk); }
       ob.append(b);
     });
     inst.forEach((o) => {
       const b = el('button', 'chip'); b.type = 'button'; b.dataset.id = o.id;
-      b.append(o.label, el('small', '', 'Sofort. ' + o.hint));
+      b.append(KM.text(o.label, lang), el('small', '', T('u.instant') + ' ' + KM.text(o.hint, lang)));
       ib.append(b);
     });
     $('#ask').hidden = S.over;
@@ -293,17 +309,23 @@
   });
 
   /* ── Akte ── */
+  /* Akte-Einträge speichern Schlüssel statt Text, damit sie in jeder Sprache lesbar sind.
+     Ältere Einträge mit fertigem deutschen Text (typ, head, grade) werden weiter so angezeigt. */
   function record() {
     if (recorded) return;
     recorded = true;
-    ev = KM.evaluate(S);
+    const ev = KM.evaluate(S, lang);
     akte.unshift({
-      n: attempt, code: scCode(S.seed), ts: Date.now(), typ: KM.TYPE[S.sc.type][0], head: ev.head,
-      saved: S.res.saved, people: S.res.people, crewDead: S.res.crewDead, total: ev.total, grade: ev.grade, cheated: ev.cheated, win: ev.win, min: S.turn,
+      n: attempt, code: scCode(S.seed), ts: Date.now(), type: S.sc.type, hk: ev.hk,
+      saved: S.res.saved, people: S.res.people, crewDead: S.res.crewDead, total: ev.total, cheated: ev.cheated, win: ev.win, min: S.turn,
     });
     if (akte.length > 60) akte.length = 60;
     local.set('km.akte', akte);
   }
+  const DATE = {
+    de: { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' },
+    en: { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' },
+  };
   function renderAkte() {
     const list = $('#akteList'); list.textContent = '';
     $('#akteEmpty').hidden = akte.length > 0;
@@ -311,14 +333,21 @@
     const best = valid.reduce((m, a) => Math.max(m, a.total), 0);
     const sum = $('#akteSum');
     sum.hidden = !akte.length;
-    sum.textContent = akte.length ? akte.length + (akte.length === 1 ? ' Versuch' : ' Versuche') + ' in der Akte' + (valid.length ? ', beste Wertung ' + best + ' von 100.' : '.') : '';
+    sum.textContent = akte.length ? T('u.recordSum', { n: akte.length, best: valid.length ? best : null }) : '';
+    /* Alter Eintrag: deutschen Text über die deutschen Texte zurück auf den Schlüssel führen */
+    const fromDe = (prefix, s) => { for (const k in I.T.de) if (k.startsWith(prefix) && k.split('.').length === 2 && I.T.de[k] === s) return T(k); return s || ''; };
     for (const a of akte) {
+      const type = a.type ? T('type.' + a.type) : fromDe('type.', a.typ);
+      const head = a.hk ? T('hd.' + a.hk) : fromDe('hd.', a.head);
+      const grade = a.hk ? T('gr.' + KM.gradeKey(a.total)) : fromDe('gr.', a.grade);
+      let when = '';
+      try { when = T('u.time', { d: new Date(a.ts).toLocaleString(T('u.dateLocale'), DATE[lang] || DATE.de) }); } catch (e) {}
       const li = el('li');
       li.append(
-        el('span', 'a1', 'Versuch ' + a.n + ' · ' + a.code + ' · ' + a.typ),
+        el('span', 'a1', T('u.recordHead', { n: a.n, code: a.code, type })),
         el('span', 'a2', a.cheated ? '–' : String(a.total)),
-        el('span', 'a3', a.head + '. ' + a.saved + ' von ' + a.people + ' gerettet, ' + a.crewDead + ' eigene Verluste, ' + a.min + ' Min.'),
-        el('span', 'a4', (a.cheated ? (a.win ? 'Simulationskern verändert. Belobigung für unkonventionelles Denken.' : 'Simulationskern verändert, nicht gewertet.') : a.grade) + ' ' + new Date(a.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' Uhr')
+        el('span', 'a3', T('u.recordLine', { head, saved: a.saved, people: a.people, crewDead: a.crewDead, min: a.min })),
+        el('span', 'a4', (a.cheated ? T(a.win ? 'u.recordCheatWin' : 'u.recordCheat') : grade) + ' ' + when)
       );
       list.append(li);
     }
@@ -327,38 +356,34 @@
   /* ── Auswertung ── */
   function renderDebrief() {
     const box = $('#debrief'); box.textContent = '';
-    if (!ev) ev = KM.evaluate(S);
+    const ev = KM.evaluate(S, lang);
     const r = S.res;
-    box.append(el('p', 'db-eyebrow', 'Auswertung · Szenario ' + scCode(S.seed) + ' · Versuch ' + attempt));
+    box.append(el('p', 'db-eyebrow', T('u.debriefEyebrow', { code: scCode(S.seed), n: attempt })));
     box.append(el('h2', 'db-head', ev.head));
     box.append(el('p', 'db-text', ev.text));
 
     const v = el('div', 'verdict' + (ev.cheated ? ' off' : ev.pass ? '' : ' fail'));
     if (ev.cheated) {
-      v.append(el('span', 'vg', ev.win ? 'Bewertung ausgesetzt' : 'Nicht gewertet'));
+      v.append(el('span', 'vg', T(ev.win ? 'u.suspended' : 'u.notScored')));
     } else {
       v.append(el('span', 'vg', ev.grade));
-      const vt = el('span', 'vt', String(ev.total)); vt.append(el('small', '', 'von 100')); v.append(vt);
+      const vt = el('span', 'vt', String(ev.total)); vt.append(el('small', '', T('u.of100'))); v.append(vt);
     }
     box.append(v);
-    if (ev.cheated) {
-      box.append(el('p', 'closing', ev.win
-        ? 'Dieses Ergebnis sieht der Simulator nicht vor. Die Prüfung des Kerns zeigt: Parameter wurden von Ihrer Konsole aus verändert. Vermerk in der Akte: Belobigung für unkonventionelles Denken.'
-        : 'Der Simulationskern war verändert. Dieser Versuch zählt nicht für die Akte. Gewonnen haben Sie trotzdem nicht.'));
-    }
-    const pr = el('p', 'profile'); pr.append(el('b', '', 'Kommandoprofil: ' + ev.profile[0] + '.'), ' ' + ev.profile[1]); box.append(pr);
+    if (ev.cheated) box.append(el('p', 'closing', T(ev.win ? 'u.cheatWin' : 'u.cheatLoss')));
+    const pr = el('p', 'profile'); pr.append(el('b', '', T('u.profile', { name: ev.profile[0] })), ' ' + ev.profile[1]); box.append(pr);
 
     const facts = el('dl', 'facts');
-    const fact = (k, val) => { const d = el('div'); d.append(el('dt', '', k), el('dd', '', val)); facts.append(d); };
-    fact('Gerettet', r.saved + ' von ' + r.people);
-    fact('Eigene Verluste', r.crewDead + ' von ' + S.ship.crew);
-    fact('Schiff', r.captured ? 'In Feindeshand' : r.shipLost ? 'Verloren' : 'Hülle ' + r.hull + ' %');
-    fact('Vertrag', S.f.entered ? 'Gebrochen' : 'Gewahrt');
-    fact('Kreuzer zerstört', String(S.kills));
-    fact('Dauer', S.turn + ' Min');
+    const fact = (k, val) => { const d = el('div'); d.append(el('dt', '', T(k)), el('dd', '', val)); facts.append(d); };
+    fact('u.fSaved', T('u.nOfM', { n: r.saved, m: r.people }));
+    fact('u.fLosses', T('u.nOfM', { n: r.crewDead, m: S.ship.crew }));
+    fact('u.fShip', r.captured ? T('u.enemyHands') : r.shipLost ? T('u.shipLost') : T('u.hullPct', { n: r.hull }));
+    fact('u.fTreaty', T(S.f.entered ? 'u.broken' : 'u.kept'));
+    fact('u.fKills', String(S.kills));
+    fact('u.fDuration', T('u.min', { n: S.turn }));
     box.append(facts);
 
-    box.append(el('h3', 'h', 'Bewertung der Kommission'));
+    box.append(el('h3', 'h', T('u.hBoard')));
     const scs = el('dl', 'scores');
     for (const x of ev.sc) {
       const d = el('div', 'sc'); const m = el('dd', 'meter'); const b = el('b'); b.style.width = x.v + '%'; m.append(b);
@@ -366,29 +391,27 @@
     }
     box.append(scs);
 
-    box.append(el('h3', 'h', 'Beobachtungen'));
+    box.append(el('h3', 'h', T('u.hObs')));
     const ul = el('ul', 'obs');
     for (const o of ev.obs) {
       const li = el('li', o.s > 0 ? 'plus' : o.s < 0 ? 'minus' : 'neutral');
       const m = el('span', 'm', o.s > 0 ? '+' : o.s < 0 ? '−' : '·'); m.setAttribute('aria-hidden', 'true');
       li.append(m, el('span', '', o.t));
-      li.setAttribute('aria-label', (o.s > 0 ? 'Stärke: ' : o.s < 0 ? 'Kritik: ' : 'Vermerk: ') + o.t);
+      li.setAttribute('aria-label', T(o.s > 0 ? 'u.obsPlus' : o.s < 0 ? 'u.obsMinus' : 'u.obsNote') + o.t);
       ul.append(li);
     }
     box.append(ul);
 
-    box.append(el('h3', 'h', 'Was der Simulator verborgen hielt'));
+    box.append(el('h3', 'h', T('u.hHidden')));
     const rv = el('dl', 'reveal');
     for (const [k, val, n] of ev.reveal) { const d = el('div'); d.append(el('dt', '', k), el('dd', 'rv', val)); if (n) d.append(el('dd', 'rn', n)); rv.append(d); }
     box.append(rv);
 
-    box.append(el('p', 'closing', ev.win
-      ? 'Die Prüfung fragt, wie Sie mit einer ausweglosen Lage umgehen. Sie haben die Lage geändert. Ob das als Antwort gilt, klärt der Ausschuss.'
-      : 'Diese Prüfung ist nicht zu gewinnen. Die Kommission will sehen, wie Sie entscheiden, wenn jede Entscheidung Menschenleben kostet.'));
+    box.append(el('p', 'closing', T(ev.win ? 'u.closeWin' : 'u.closeLoss')));
     const row = el('div', 'row');
-    const b1 = el('button', 'pill', 'Neuer Versuch'); b1.type = 'button'; b1.addEventListener('click', () => { sfx.ok(); begin(newSeed(), true); });
-    const b2 = el('button', 'pill alt', 'Gleiches Szenario noch einmal'); b2.type = 'button'; b2.addEventListener('click', () => { sfx.ok(); begin(S.seed, true); });
-    const b3 = el('button', 'pill quiet', 'Protokoll lesen'); b3.type = 'button'; b3.addEventListener('click', () => show('protokoll'));
+    const b1 = el('button', 'pill', T('u.again')); b1.type = 'button'; b1.addEventListener('click', () => { sfx.ok(); begin(newSeed(), true); });
+    const b2 = el('button', 'pill alt', T('u.same')); b2.type = 'button'; b2.addEventListener('click', () => { sfx.ok(); begin(S.seed, true); });
+    const b3 = el('button', 'pill quiet', T('u.readLog')); b3.type = 'button'; b3.addEventListener('click', () => show('protokoll'));
     row.append(b1, b2, b3); box.append(row);
   }
 
@@ -400,8 +423,8 @@
     for (const e of S.log) {
       const sec = el('section');
       const h = el('div', 'turnhead');
-      h.append(el('b', '', e.order ? (e.instant ? 'Sofortbefehl' : 'Minute ' + e.t) : 'Lage zu Beginn'));
-      if (e.order) h.append(el('span', '', e.order));
+      h.append(el('b', '', e.order ? (e.instant ? T('u.instantOrder') : T('u.minuteN', { n: e.t })) : T('u.initial')));
+      if (e.order) h.append(el('span', '', KM.text(e.order, lang)));
       sec.append(h);
       for (const l of e.rep) sec.append(reportNode(l, false));
       box.append(sec);
@@ -409,25 +432,28 @@
   }
 
   /* ── Wartung: der Simulationskern ── */
+  /* Parameter: Schlüssel und Auswahl. Name und Beschreibung stehen in i18n.js unter pa.<schlüssel> */
   const PARAMS = [
-    ['verst', 'Verstärkung des Gegners', 'Ersatz für jeden zerstörten Kreuzer, dazu alle zwei Minuten weitere.', [[true, 'Unbegrenzt'], [false, 'Aus']]],
-    ['abfang', 'Riegel an der Grenze', 'Versperrt den Rückweg, sobald Gerettete an Bord sind.', [[true, 'Aktiv'], [false, 'Aus']]],
-    ['treffer', 'Trefferwirkung des Gegners', 'Schaden jeder gegnerischen Salve.', [[100, '100 %'], [50, '50 %']]],
-    ['leben', 'Lebenserhaltung des Frachters', 'Zeit, bis auf dem Frachter die Luft ausgeht.', [[0, 'Standard'], [6, '+6 Min']]],
-    ['ruf', 'Ruf des Kadetten beim Gegner', 'Was der gegnerische Kommandant über Sie zu wissen glaubt.', [[false, 'Unbekannt'], [true, 'Gefürchtet']]],
+    ['verst', [[true, 'pa.verst.on'], [false, 'pa.off']]],
+    ['abfang', [[true, 'pa.abfang.on'], [false, 'pa.off']]],
+    ['treffer', [[100, ['u.pct', { n: 100 }]], [50, ['u.pct', { n: 50 }]]]],
+    ['leben', [[0, 'pa.leben.std'], [6, 'pa.leben.plus']]],
+    ['ruf', [[false, 'pa.ruf.off'], [true, 'pa.ruf.on']]],
   ];
   function renderKern() {
     $('#kernLocked').hidden = kernOpen; $('#kernOpen').hidden = !kernOpen;
+    renderKernNote();
     if (!kernOpen) return;
     const n = PARAMS.filter((p) => cheats[p[0]] !== KM.DEF[p[0]]).length;
-    $('#kernState').textContent = 'Angemeldet als Ausbilder. ' + (n === 0 ? 'Es gilt der Prüfungsstandard.' : (n === 1 ? 'Ein Parameter ist verändert.' : n + ' Parameter sind verändert.') + ' Der nächste Versuch läuft mit diesen Werten und wird als verändert protokolliert.');
+    $('#kernState').textContent = T('u.coreState', { n });
     const box = $('#params'); box.textContent = '';
-    for (const [key, name, desc, opts] of PARAMS) {
+    for (const [key, opts] of PARAMS) {
+      const name = T('pa.' + key);
       const d = el('div', 'param');
-      d.append(el('span', 'pn', name), el('span', 'pd', desc));
+      d.append(el('span', 'pn', name), el('span', 'pd', T('pa.' + key + '.d')));
       const seg = el('div', 'seg2'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', name);
       for (const [val, label] of opts) {
-        const b = el('button', '', label); b.type = 'button';
+        const b = el('button', '', I.text(lang, label)); b.type = 'button';
         b.setAttribute('aria-pressed', String(cheats[key] === val));
         b.addEventListener('click', () => { cheats[key] = val; local.set('km.params', cheats); sfx.tap(); renderKern(); renderHead(); });
         seg.append(b);
@@ -436,18 +462,25 @@
     }
   }
   const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  /* Hinweis nach falschem Code: als Zustand gemerkt, damit er beim Sprachwechsel mitwechselt */
+  let kernDenied = false;
+  function renderKernNote() {
+    const note = $('#kernNote');
+    note.classList.toggle('bad', kernDenied);
+    setText(note, kernDenied ? T('u.denied', { hint: kernFails >= 2 }) : '');
+  }
   function tryLogin() {
-    const inp = $('#kernCode'), note = $('#kernNote');
+    const inp = $('#kernCode');
     if (!norm(inp.value)) { inp.focus(); return; }
     if (norm(inp.value) === norm(code.join(''))) {
-      kernOpen = true; local.set('km.kern', true); inp.value = ''; note.textContent = '';
+      kernOpen = true; local.set('km.kern', true); inp.value = ''; kernDenied = false;
       sfx.ok(); renderKern(); renderHead();
       return;
     }
     kernFails++;
     sfx.deny();
-    note.classList.add('bad');
-    note.textContent = 'Zugriff verweigert. Der Versuch wurde protokolliert.' + (kernFails >= 2 ? ' Hinweis des Systems: Unter Überlast schreibt der Kern Diagnosezeilen ins Brückenprotokoll.' : '');
+    kernDenied = true;
+    renderKernNote();
   }
   $('#kernBtn').addEventListener('click', tryLogin);
   $('#kernCode').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); tryLogin(); } });
@@ -541,8 +574,8 @@
     ctx.restore();
     ctx.strokeStyle = C.peri; ctx.lineWidth = 2; ctx.setLineDash([7, 5]);
     ctx.beginPath(); ctx.moveTo(G.x0, 0); ctx.lineTo(G.x0, ch); ctx.stroke(); ctx.setLineDash([]);
-    label('Neutrale Zone', G.x0 + 8, 12, C.peri);
-    ctx.save(); ctx.translate(G.x0 - 8, ch - 8); ctx.rotate(-Math.PI / 2); label('Grenze', 0, 0, C.peri); ctx.restore();
+    label(T('u.neutralZone'), G.x0 + 8, 12, C.peri);
+    ctx.save(); ctx.translate(G.x0 - 8, ch - 8); ctx.rotate(-Math.PI / 2); label(T('u.border'), 0, 0, C.peri); ctx.restore();
 
     /* Kurslinie und Minen */
     ctx.strokeStyle = C.dim; ctx.globalAlpha = 0.5; ctx.lineWidth = 1; ctx.setLineDash([2, 6]);
@@ -607,7 +640,7 @@
       ctx.beginPath(); ctx.arc(G.sx, G.sy, 5, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.moveTo(G.sx + dir * 11, G.sy); ctx.lineTo(G.sx + dir * 5, G.sy - 3.5); ctx.lineTo(G.sx + dir * 5, G.sy + 3.5); ctx.closePath(); ctx.fill();
       const atBorder = S.phase === 'grenze' && !S.over;
-      label(sh.name, atBorder ? G.x0 + 8 : G.sx, atBorder ? G.sy - 18 : Math.min(ch - 8, G.sy + 24), C.hot, atBorder || G.sx < 50 ? 'left' : 'center');
+      label(T('ship', { name: sh.name }), atBorder ? G.x0 + 8 : G.sx, atBorder ? G.sy - 18 : Math.min(ch - 8, G.sy + 24), C.hot, atBorder || G.sx < 50 ? 'left' : 'center');
     }
 
     /* Effekte */
@@ -689,7 +722,7 @@
     $('#brief').hidden = stage !== 'brief';
     $('#console').hidden = stage !== 'sim';
     $('#debrief').hidden = stage !== 'debrief';
-    if (stage === 'brief') setText($('#briefNote'), 'Szenario ' + scCode(S.seed) + (KM.isCheated(cheats) ? ' · Simulationskern verändert' : ''));
+    if (stage === 'brief') setText($('#briefNote'), T('u.scenario', { code: scCode(S.seed) }) + (KM.isCheated(cheats) ? ' · ' + T('u.coreModified') : ''));
     if (stage === 'sim') renderConsole();
     if (stage === 'debrief') renderDebrief();
     if (view === 'protokoll') renderProtokoll();
@@ -709,7 +742,7 @@
   $('#resetBtn').addEventListener('click', () => {
     const running = stage === 'sim' && !S.over;
     if (running && !armed) {
-      armed = true; $('#resetLbl').textContent = 'Sicher?'; sfx.caution();
+      armed = true; setText($('#resetLbl'), T('u.sure')); sfx.caution();
       armTimer = setTimeout(() => { armed = false; renderHead(); }, 3500);
       return;
     }
@@ -720,11 +753,22 @@
     $('#view-bruecke').scrollTop = 0;
   });
 
+  /* ── Sprache umschalten: alles neu zeichnen, nichts geht verloren ── */
+  $('#langBtn').addEventListener('click', () => {
+    lang = lang === 'de' ? 'en' : 'de';
+    local.set('km.lang', lang);
+    sfx.tap();
+    applyStatic(); renderSound(); music.render();
+    shown = S.log.length; /* keine Einblend-Animation für schon gezeigte Meldungen */
+    if (view === 'wartung') renderKern();
+    render();
+  });
+
   /* ── Start ── */
   function start(saved) {
     let ok = false;
     try {
-      if (saved && saved.S && saved.S.v === 1 && saved.S.ship && Array.isArray(saved.S.log)) {
+      if (saved && saved.S && saved.S.v === 2 && saved.S.ship && Array.isArray(saved.S.log)) {
         S = saved.S; stage = saved.stage === 'sim' || saved.stage === 'debrief' ? saved.stage : 'brief';
         recorded = !!saved.recorded; anim.pos = S.pos; shown = S.log.length; ok = true;
         render(); show(VIEWS.includes(saved.view) ? saved.view : 'bruecke');

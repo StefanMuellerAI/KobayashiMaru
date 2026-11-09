@@ -18,10 +18,10 @@
     <div class="side-top"><span id="scCode">KM</span></div>
     <div class="top-main">
       <h1>Kobayashi Maru</h1>
-      <div class="clock" id="clock" role="timer" aria-label="Missionszeit"></div>
+      <div class="clock" id="clock" role="timer" aria-label="Missionszeit" data-i18n-attr="aria-label:u.missionTime"></div>
       <dl class="meta">
-        <div><dt>Lage</dt><dd id="mPhase">Bereit</dd></div>
-        <div><dt>Versuch</dt><dd id="mTry">1</dd></div>
+        <div><dt data-i18n="u.situation">Lage</dt><dd id="mPhase">Bereit</dd></div>
+        <div><dt data-i18n="u.attempt">Versuch</dt><dd id="mTry">1</dd></div>
       </dl>
     </div>
     <div class="corner corner-top"></div>
@@ -34,13 +34,14 @@
   </header>
 
   <div class="frame frame-bottom">
-    <nav class="side-bottom" aria-label="Bereiche">
+    <nav class="side-bottom" aria-label="Bereiche" data-i18n-attr="aria-label:u.sections">
       <div class="elbow" aria-hidden="true"></div>
-      <button class="nb c-peach" data-view="bruecke"><span class="info" id="navBr"></span><span>Brücke</span></button>
-      <button class="nb c-ice" data-view="protokoll"><span class="info" id="navLog"></span><span>Protokoll</span></button>
-      <button class="nb c-peri" data-view="akte"><span class="info" id="navAkte"></span><span>Akte</span></button>
-      <button class="nb c-lilac" data-view="wartung"><span class="info" id="navKern">Gesperrt</span><span>Wartung</span></button>
+      <button class="nb c-peach" data-view="bruecke"><span class="info" id="navBr"></span><span data-i18n="u.navBridge">Brücke</span></button>
+      <button class="nb c-ice" data-view="protokoll"><span class="info" id="navLog"></span><span data-i18n="u.navLog">Protokoll</span></button>
+      <button class="nb c-peri" data-view="akte"><span class="info" id="navAkte"></span><span data-i18n="u.navRecord">Akte</span></button>
+      <button class="nb c-lilac" data-view="wartung"><span class="info" id="navKern">Gesperrt</span><span data-i18n="u.navCore">Wartung</span></button>
       <div class="filler" aria-hidden="true"></div>
+      <button class="nb c-amber" id="langBtn" type="button"><span class="info" data-i18n="u.langInfo">Sprache</span><span id="langLbl" data-i18n="u.langOther" lang="en">English</span></button>
       <button class="nb c-ice" id="musicBtn" aria-pressed="true"><span class="info" id="musicInfo"></span><span id="musicLbl">Musik an</span></button>
       <button class="nb c-peach" id="soundBtn" aria-pressed="true"><span class="info"></span><span id="soundLbl">Effekte an</span></button>
       <button class="nb c-mars last" id="resetBtn"><span class="info" id="resetInfo">Versuch</span><span id="resetLbl">Neu</span></button>
@@ -56,36 +57,36 @@
     <main class="content">
 
       <section class="view" id="view-bruecke" data-view="bruecke">
-        <h2 class="vh">Brücke</h2>
+        <h2 class="vh" data-i18n="u.navBridge">Brücke</h2>
         <div class="bridge" id="bridge">
           <div class="scope" id="scope">
-            <div class="tac"><canvas id="tac" role="img" aria-label="Taktische Anzeige: eigenes Schiff, Frachter und Gegner in der Neutralen Zone"></canvas></div>
+            <div class="tac"><canvas id="tac" role="img" aria-label="Taktische Anzeige: eigenes Schiff, Frachter und Gegner in der Neutralen Zone" data-i18n-attr="aria-label:u.tac"></canvas></div>
             <dl class="gauges" id="gauges">
-              <div class="g" id="gSh"><dt>Schilde</dt><dd class="gv">–</dd><dd class="gs"></dd><dd class="meter"><b></b></dd></div>
-              <div class="g" id="gHu"><dt>Hülle</dt><dd class="gv">–</dd><dd class="gs"></dd><dd class="meter"><b></b></dd></div>
-              <div class="g" id="gTo"><dt>Torpedos</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
-              <div class="g" id="gEn"><dt>Gegner</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
-              <div class="g" id="gFr"><dt>Frachter</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
-              <div class="g" id="gRe"><dt>Gerettet</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
-              <div class="g" id="gLi"><dt>Restzeit</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
-              <div class="g" id="gCr"><dt>Verluste</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gSh"><dt data-i18n="u.gShields">Schilde</dt><dd class="gv">–</dd><dd class="gs"></dd><dd class="meter"><b></b></dd></div>
+              <div class="g" id="gHu"><dt data-i18n="u.gHull">Hülle</dt><dd class="gv">–</dd><dd class="gs"></dd><dd class="meter"><b></b></dd></div>
+              <div class="g" id="gTo"><dt data-i18n="u.gTorp">Torpedos</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gEn"><dt data-i18n="u.gEnemy">Gegner</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gFr"><dt data-i18n="u.gFreighter">Frachter</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gRe"><dt data-i18n="u.gRescued">Gerettet</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gLi"><dt data-i18n="u.gLife">Restzeit</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gCr"><dt data-i18n="u.gLosses">Verluste</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
             </dl>
           </div>
 
           <div class="brief" id="brief">
-            <h2>Kommandoprüfung der Akademie</h2>
-            <p>Sie führen ein Schiff der Sternenflotte an der Grenze zur Neutralen Zone. Gleich geht ein Notruf ein. Lage, Gegner und Zeit legt der Simulator bei jedem Versuch neu fest. Sie entscheiden Minute für Minute.</p>
-            <p class="crit-list">Die Kommission bewertet Ihre Führung: Lagebild, Entschlusskraft, Verantwortung für die Besatzung, Rettungsauftrag, Verhältnismäßigkeit und Haltung im Scheitern. Ab 56 von 100 Punkten ist die Prüfung bestanden, ab 78 mit Auszeichnung.</p>
-            <div class="row"><button class="pill" id="startBtn">Simulation starten</button><span class="note" id="briefNote"></span></div>
+            <h2 data-i18n="u.briefHead">Kommandoprüfung der Akademie</h2>
+            <p data-i18n="u.brief1">Sie führen ein Schiff der Sternenflotte an der Grenze zur Neutralen Zone. Gleich geht ein Notruf ein. Lage, Gegner und Zeit legt der Simulator bei jedem Versuch neu fest. Sie entscheiden Minute für Minute.</p>
+            <p class="crit-list" data-i18n="u.brief2">Die Kommission bewertet Ihre Führung: Lagebild, Entschlusskraft, Verantwortung für die Besatzung, Rettungsauftrag, Verhältnismäßigkeit und Haltung im Scheitern. Ab 56 von 100 Punkten ist die Prüfung bestanden, ab 78 mit Auszeichnung.</p>
+            <div class="row"><button class="pill" id="startBtn" data-i18n="u.start">Simulation starten</button><span class="note" id="briefNote"></span></div>
           </div>
 
           <div class="console" id="console" hidden>
             <div class="turnhead" id="turnhead"></div>
             <div class="reports" id="reports" aria-live="polite"></div>
-            <p class="ask" id="ask">Ihre Befehle, Kadett?</p>
+            <p class="ask" id="ask" data-i18n="u.ask">Ihre Befehle, Kadett?</p>
             <div class="orders" id="orders"></div>
             <div class="instant" id="instant"></div>
-            <div class="row" id="endRow" hidden><button class="pill" id="toDebrief">Auswertung ansehen</button></div>
+            <div class="row" id="endRow" hidden><button class="pill" id="toDebrief" data-i18n="u.toDebrief">Auswertung ansehen</button></div>
           </div>
 
           <div class="db" id="debrief" hidden></div>
@@ -93,27 +94,27 @@
       </section>
 
       <section class="view" id="view-protokoll" data-view="protokoll" hidden>
-        <h2 class="vh">Protokoll</h2>
-        <p class="empty" id="plogEmpty">Das Brückenprotokoll beginnt mit dem Start der Simulation.</p>
+        <h2 class="vh" data-i18n="u.navLog">Protokoll</h2>
+        <p class="empty" id="plogEmpty" data-i18n="u.logEmpty">Das Brückenprotokoll beginnt mit dem Start der Simulation.</p>
         <div class="plog" id="plog"></div>
       </section>
 
       <section class="view" id="view-akte" data-view="akte" hidden>
-        <h2 class="vh">Akte</h2>
+        <h2 class="vh" data-i18n="u.navRecord">Akte</h2>
         <p class="akte-sum" id="akteSum"></p>
-        <p class="empty" id="akteEmpty">Noch kein abgeschlossener Versuch. Jede beendete Simulation wird hier mit Ergebnis und Wertung eingetragen.</p>
+        <p class="empty" id="akteEmpty" data-i18n="u.recordEmpty">Noch kein abgeschlossener Versuch. Jede beendete Simulation wird hier mit Ergebnis und Wertung eingetragen.</p>
         <ol class="akte" id="akteList"></ol>
       </section>
 
       <section class="view" id="view-wartung" data-view="wartung" hidden>
         <div class="term">
-          <h2>Simulationskern</h2>
+          <h2 data-i18n="u.coreHead">Simulationskern</h2>
           <div id="kernLocked">
-            <p>Kommandoprüfung, Parameter der Simulation. Zugriff nur für Ausbilder.</p>
-            <label class="lbl" for="kernCode" style="margin-top:14px">Zugangscode, drei Kennwörter</label>
+            <p data-i18n="u.coreIntro">Kommandoprüfung, Parameter der Simulation. Zugriff nur für Ausbilder.</p>
+            <label class="lbl" for="kernCode" style="margin-top:14px" data-i18n="u.codeLabel">Zugangscode, drei Kennwörter</label>
             <div class="login">
-              <input class="field" id="kernCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" maxlength="40" placeholder="Kennwort 1  Kennwort 2  Kennwort 3">
-              <button class="pill" id="kernBtn">Anmelden</button>
+              <input class="field" id="kernCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" maxlength="40" placeholder="Kennwort 1  Kennwort 2  Kennwort 3" data-i18n-attr="placeholder:u.codePh">
+              <button class="pill" id="kernBtn" data-i18n="u.login">Anmelden</button>
             </div>
             <p class="note" id="kernNote" style="margin-top:10px"></p>
           </div>
@@ -121,8 +122,8 @@
             <p id="kernState"></p>
             <div class="params" id="params" style="margin-top:14px"></div>
             <div class="row" style="margin-top:18px">
-              <button class="pill alt" id="kernReset">Prüfungsstandard herstellen</button>
-              <button class="pill quiet" id="kernOut">Abmelden</button>
+              <button class="pill alt" id="kernReset" data-i18n="u.coreReset">Prüfungsstandard herstellen</button>
+              <button class="pill quiet" id="kernOut" data-i18n="u.logout">Abmelden</button>
             </div>
           </div>
         </div>
@@ -133,11 +134,12 @@
 
   <!-- Neuer Tab, damit eine laufende Simulation nicht verloren geht -->
   <footer class="foot">
-    <a href="impressum.html" target="_blank" rel="noopener">Impressum</a>
-    <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutz</a>
+    <a href="impressum.html" target="_blank" rel="noopener" data-i18n="u.imprint" data-i18n-attr="href:u.imprintHref">Impressum</a>
+    <a href="datenschutz.html" target="_blank" rel="noopener" data-i18n="u.privacy" data-i18n-attr="href:u.privacyHref">Datenschutz</a>
   </footer>
 </div>
 
+<script src="js/i18n.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/music.js"></script>
 <script src="js/app.js"></script>

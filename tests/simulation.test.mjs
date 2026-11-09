@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const KM = require('../public/js/engine.js');
+const I18N = require('../public/js/i18n.js');
 const CODE = ['ALFA-1', 'KILO-2', 'TANGO-3'];
 
 function play(seed, policy, cheats) {
@@ -86,7 +87,7 @@ test('Bilanz, Bewertung und Meldungen sind in jedem Durchlauf stimmig', () => {
       const ev = KM.evaluate(S);
       for (const s of ev.sc) assert.ok(s.v >= 0 && s.v <= 100, `Wertung ${s.label} = ${s.v}`);
       assert.ok(ev.total >= 0 && ev.total <= 100);
-      for (const e of S.log) for (const l of e.rep) assert.doesNotMatch(l.text, /undefined|NaN|null/, l.text);
+      for (const e of S.log) for (const l of e.rep) for (const lang of I18N.LANGS) assert.doesNotMatch(KM.line(l, lang), /undefined|NaN|null/, l.k);
     }
   }
 });
@@ -102,4 +103,39 @@ test('Mit verändertem Simulationskern ist ein Sieg möglich', () => {
   let wins = 0;
   for (let i = 1; i <= 300; i++) if (play(i * 31 + 5, POLICIES['alle holen'], { ruf: true, leben: 6 }).out === 'sieg') wins++;
   assert.ok(wins > 0, 'kein einziger Sieg trotz Eingriff');
+});
+
+test('Deutsch und Englisch haben dieselben Texte', () => {
+  const de = Object.keys(I18N.T.de).sort(), en = Object.keys(I18N.T.en).sort();
+  assert.deepEqual(en, de);
+});
+
+test('Englische Fassung: kein Deutsch, keine Lücken, keine rohen Schlüssel', () => {
+  const bad = (s) => typeof s !== 'string' || !s.trim() || /undefined|NaN|null|[äöüßÄÖÜ„]/.test(s) || /^[a-z]+\.[A-Za-z.]+$/.test(s);
+  for (const [name, policy] of Object.entries(POLICIES)) {
+    for (let i = 1; i <= 150; i++) {
+      const S = KM.newGame(i * 4099 + 3, i % 3 ? undefined : { ruf: true, leben: 6 }, CODE);
+      while (!S.over) {
+        const os = KM.orders(S);
+        for (const o of os) {
+          assert.ok(!bad(KM.text(o.label, 'en')), `${name}: Befehl ${o.id}`);
+          if (o.hint) assert.ok(!bad(KM.text(o.hint, 'en')), `${name}: Hinweis ${o.id}: ${KM.text(o.hint, 'en')}`);
+        }
+        KM.order(S, policy(S, os));
+      }
+      for (const e of S.log) for (const l of e.rep) assert.ok(!bad(KM.line(l, 'en')), `${l.k}: ${KM.line(l, 'en')}`);
+      const ev = KM.evaluate(S, 'en');
+      for (const s of [ev.head, ev.text, ev.grade, ...ev.profile, ...ev.obs.map((o) => o.t), ...ev.sc.map((x) => x.label), ...ev.reveal.flat().filter(Boolean)]) assert.ok(!bad(s), s);
+      assert.equal(ev.total, KM.evaluate(S, 'de').total);
+    }
+  }
+});
+
+test('Sprache folgt dem Browser, sonst Englisch', () => {
+  assert.equal(I18N.detect(['de-AT', 'en-US']), 'de');
+  assert.equal(I18N.detect(['fr-FR', 'en-GB', 'de']), 'en');
+  assert.equal(I18N.detect(['fr-FR', 'de-CH']), 'de');
+  assert.equal(I18N.detect(['EN']), 'en');
+  assert.equal(I18N.detect(['fr', 'it']), 'en');
+  assert.equal(I18N.detect([]), 'en');
 });

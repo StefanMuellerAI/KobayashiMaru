@@ -11,6 +11,7 @@ Läuft komplett im Browser, ohne Server, ohne Build-Schritt und ohne Abrufe bei 
 - **Bewertung durch die Akademie** in sechs Kategorien: Lagebild, Entschlusskraft, Verantwortung für die Besatzung, Rettungsauftrag, Verhältnismäßigkeit, Haltung im Scheitern. Ab 56 von 100 Punkten bestanden, ab 78 mit Auszeichnung.
 - **Musik, die der Lage folgt:** im Browser erzeugt (Web Audio), von ruhig an der Grenze bis treibend im Gefecht, mit eigenen Stimmungen für jeden Ausgang. Musik und Effekte lassen sich getrennt abschalten.
 - **Akte** mit allen abgeschlossenen Versuchen, gespeichert im Browser.
+- **Deutsch und Englisch:** Die Sprache folgt der Browser-Einstellung (deutschsprachige Browser bekommen Deutsch, alle anderen Englisch) und lässt sich in der Seitenleiste umschalten. Beim Umschalten wechselt alles sofort, auch laufende Meldungen, Protokoll, Akte und Auswertung.
 - Ein versteckter Weg, die Simulation umzuprogrammieren. Wie beim Vorbild.
 
 ## Lokal starten
@@ -36,7 +37,8 @@ Die Tests spielen die Spiellogik tausendfach mit verschiedenen Spielweisen durch
 - dass ohne Eingriff in den Simulationskern kein Sieg möglich ist,
 - dass die Bilanz aus Geretteten, Toten und Besatzung in jedem Durchlauf aufgeht,
 - dass gleicher Startwert und gleiche Befehle denselben Verlauf ergeben,
-- dass mit verändertem Kern ein Sieg möglich ist.
+- dass mit verändertem Kern ein Sieg möglich ist,
+- dass Deutsch und Englisch dieselben Texte haben und die englische Fassung kein Deutsch und keine Lücken enthält.
 
 ## Auf Vercel veröffentlichen
 
@@ -55,7 +57,10 @@ public/
   index.html        Seitengerüst
   impressum.html    Impressum (im Footer verlinkt)
   datenschutz.html  Datenschutzerklärung (im Footer verlinkt)
+  imprint.html      Impressum, englische Übersetzung
+  privacy.html      Datenschutzerklärung, englische Übersetzung
   css/style.css     Gestaltung, Schrift-Einbindung
+  js/i18n.js        Alle Texte auf Deutsch und Englisch, Spracherkennung
   js/engine.js      Spiellogik: Szenario, Befehle, Gegner, Bewertung (ohne Browser lauffähig)
   js/music.js       Musik-Engine: Stimmungen, Akkordfolgen, Instrumente
   js/app.js         Oberfläche: Anzeige, Taktikkarte, Ton, Akte, Wartung
@@ -70,7 +75,13 @@ vercel.json         Ausgabeordner und Sicherheits-Header für Vercel
 
 Die Seite lädt nichts von fremden Servern, auch die Schrift wird selbst ausgeliefert. Es gibt keine Cookies und kein Tracking. Akte und Einstellungen liegen nur im `localStorage` des jeweiligen Browsers.
 
-Impressum und Datenschutzerklärung stehen in `public/impressum.html` und `public/datenschutz.html`. Wer Hosting, Speicherung im Browser oder eingebundene Dienste ändert, muss die Datenschutzerklärung mit anpassen.
+Impressum und Datenschutzerklärung stehen in `public/impressum.html` und `public/datenschutz.html`, die englischen Übersetzungen in `public/imprint.html` und `public/privacy.html`. Verbindlich ist die deutsche Fassung. Wer Hosting, Speicherung im Browser oder eingebundene Dienste ändert, muss beide Datenschutzerklärungen mit anpassen.
+
+## Texte und Übersetzungen
+
+Alle Texte stehen in `public/js/i18n.js`, je ein Abschnitt für Deutsch und Englisch. Spiellogik und Oberfläche speichern nur Schlüssel mit Werten, der Satz entsteht erst beim Anzeigen. Ein neuer Text braucht deshalb immer einen Eintrag in beiden Sprachen; `npm test` schlägt fehl, wenn einer fehlt.
+
+Feste Texte im HTML tragen `data-i18n="schlüssel"` (Textinhalt) oder `data-i18n-attr="attribut:schlüssel"` (z. B. `aria-label`). Die Sprachwahl wird nur gespeichert (`km.lang` im `localStorage`), wenn jemand selbst umschaltet.
 
 ## Hinweis
 
