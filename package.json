@@ -1,0 +1,13 @@
+{
+  "name": "kobayashi-maru",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kommandoprüfung im Stil eines Raumschiff-Bordcomputers: nicht zu gewinnendes Szenario mit Zufallselementen, Bewertung und adaptiver Musik.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/simulation.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

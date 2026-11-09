@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kobayashi Maru</title>
+<meta name="description" content="Kommandoprüfung im Stil eines Raumschiff-Bordcomputers: ein nicht zu gewinnendes Rettungsszenario mit Zufallselementen, Bewertung der Führung und Musik passend zur Lage.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/antonio-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app boot" id="app" data-alert="normal">
+
+  <header class="frame frame-top">
+    <div class="side-top"><span id="scCode">KM</span></div>
+    <div class="top-main">
+      <h1>Kobayashi Maru</h1>
+      <div class="clock" id="clock" role="timer" aria-label="Missionszeit"></div>
+      <dl class="meta">
+        <div><dt>Lage</dt><dd id="mPhase">Bereit</dd></div>
+        <div><dt>Versuch</dt><dd id="mTry">1</dd></div>
+      </dl>
+    </div>
+    <div class="corner corner-top"></div>
+    <div class="bar bar-top" aria-hidden="true">
+      <i class="seg" style="flex:3;background:var(--lilac)"></i>
+      <i class="seg" style="flex:1;background:var(--peach)"></i>
+      <i class="seg" style="flex:.5;background:var(--ice)"></i>
+      <i class="seg cap" style="flex:2;background:var(--amber)"></i>
+    </div>
+  </header>
+
+  <div class="frame frame-bottom">
+    <nav class="side-bottom" aria-label="Bereiche">
+      <div class="elbow" aria-hidden="true"></div>
+      <button class="nb c-peach" data-view="bruecke"><span class="info" id="navBr"></span><span>Brücke</span></button>
+      <button class="nb c-ice" data-view="protokoll"><span class="info" id="navLog"></span><span>Protokoll</span></button>
+      <button class="nb c-peri" data-view="akte"><span class="info" id="navAkte"></span><span>Akte</span></button>
+      <button class="nb c-lilac" data-view="wartung"><span class="info" id="navKern">Gesperrt</span><span>Wartung</span></button>
+      <div class="filler" aria-hidden="true"></div>
+      <button class="nb c-ice" id="musicBtn" aria-pressed="true"><span class="info" id="musicInfo"></span><span id="musicLbl">Musik an</span></button>
+      <button class="nb c-peach" id="soundBtn" aria-pressed="true"><span class="info"></span><span id="soundLbl">Effekte an</span></button>
+      <button class="nb c-mars last" id="resetBtn"><span class="info" id="resetInfo">Versuch</span><span id="resetLbl">Neu</span></button>
+    </nav>
+    <div class="bar bar-bottom" aria-hidden="true">
+      <i class="seg" style="flex:1.2;background:var(--amber)"></i>
+      <i class="seg" style="flex:2.4;background:var(--peri)"></i>
+      <i class="seg" style="flex:0 0 22px;background:var(--mars)"></i>
+      <i class="seg cap" style="flex:1;background:var(--peach)"></i>
+    </div>
+    <div class="corner corner-bottom"></div>
+
+    <main class="content">
+
+      <section class="view" id="view-bruecke" data-view="bruecke">
+        <h2 class="vh">Brücke</h2>
+        <div class="bridge" id="bridge">
+          <div class="scope" id="scope">
+            <div class="tac"><canvas id="tac" role="img" aria-label="Taktische Anzeige: eigenes Schiff, Frachter und Gegner in der Neutralen Zone"></canvas></div>
+            <dl class="gauges" id="gauges">
+              <div class="g" id="gSh"><dt>Schilde</dt><dd class="gv">–</dd><dd class="gs"></dd><dd class="meter"><b></b></dd></div>
+              <div class="g" id="gHu"><dt>Hülle</dt><dd class="gv">–</dd><dd class="gs"></dd><dd class="meter"><b></b></dd></div>
+              <div class="g" id="gTo"><dt>Torpedos</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gEn"><dt>Gegner</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gFr"><dt>Frachter</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gRe"><dt>Gerettet</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gLi"><dt>Restzeit</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+              <div class="g" id="gCr"><dt>Verluste</dt><dd class="gv">–</dd><dd class="gs"></dd></div>
+            </dl>
+          </div>
+
+          <div class="brief" id="brief">
+            <h2>Kommandoprüfung der Akademie</h2>
+            <p>Sie führen ein Schiff der Sternenflotte an der Grenze zur Neutralen Zone. Gleich geht ein Notruf ein. Lage, Gegner und Zeit legt der Simulator bei jedem Versuch neu fest. Sie entscheiden Minute für Minute.</p>
+            <p class="crit-list">Die Kommission bewertet Ihre Führung: Lagebild, Entschlusskraft, Verantwortung für die Besatzung, Rettungsauftrag, Verhältnismäßigkeit und Haltung im Scheitern. Ab 56 von 100 Punkten ist die Prüfung bestanden, ab 78 mit Auszeichnung.</p>
+            <div class="row"><button class="pill" id="startBtn">Simulation starten</button><span class="note" id="briefNote"></span></div>
+          </div>
+
+          <div class="console" id="console" hidden>
+            <div class="turnhead" id="turnhead"></div>
+            <div class="reports" id="reports" aria-live="polite"></div>
+            <p class="ask" id="ask">Ihre Befehle, Kadett?</p>
+            <div class="orders" id="orders"></div>
+            <div class="instant" id="instant"></div>
+            <div class="row" id="endRow" hidden><button class="pill" id="toDebrief">Auswertung ansehen</button></div>
+          </div>
+
+          <div class="db" id="debrief" hidden></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-protokoll" data-view="protokoll" hidden>
+        <h2 class="vh">Protokoll</h2>
+        <p class="empty" id="plogEmpty">Das Brückenprotokoll beginnt mit dem Start der Simulation.</p>
+        <div class="plog" id="plog"></div>
+      </section>
+
+      <section class="view" id="view-akte" data-view="akte" hidden>
+        <h2 class="vh">Akte</h2>
+        <p class="akte-sum" id="akteSum"></p>
+        <p class="empty" id="akteEmpty">Noch kein abgeschlossener Versuch. Jede beendete Simulation wird hier mit Ergebnis und Wertung eingetragen.</p>
+        <ol class="akte" id="akteList"></ol>
+      </section>
+
+      <section class="view" id="view-wartung" data-view="wartung" hidden>
+        <div class="term">
+          <h2>Simulationskern</h2>
+          <div id="kernLocked">
+            <p>Kommandoprüfung, Parameter der Simulation. Zugriff nur für Ausbilder.</p>
+            <label class="lbl" for="kernCode" style="margin-top:14px">Zugangscode, drei Kennwörter</label>
+            <div class="login">
+              <input class="field" id="kernCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" maxlength="40" placeholder="Kennwort 1  Kennwort 2  Kennwort 3">
+              <button class="pill" id="kernBtn">Anmelden</button>
+            </div>
+            <p class="note" id="kernNote" style="margin-top:10px"></p>
+          </div>
+          <div id="kernOpen" hidden>
+            <p id="kernState"></p>
+            <div class="params" id="params" style="margin-top:14px"></div>
+            <div class="row" style="margin-top:18px">
+              <button class="pill alt" id="kernReset">Prüfungsstandard herstellen</button>
+              <button class="pill quiet" id="kernOut">Abmelden</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/music.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
